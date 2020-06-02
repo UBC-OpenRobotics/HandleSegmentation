@@ -1,0 +1,10 @@
+{
+	"base_path":"/home/francisco/openrobotics_ws/src/HandleSegmentation",
+	"dataset_path": "collected_data/",
+	"input_w": 384,
+	"input_h": 384,
+	"collection_frame_skip": 5,
+	"dev_split": 0.15,
+	"train_img_dir": "train/Images/",
+	"dev_img_dir": "dev/Images"
+}
