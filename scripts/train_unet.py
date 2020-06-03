@@ -103,11 +103,11 @@ if __name__ == "__main__":
     train_img_dir = config['train_img_dir']
     train_mask_dir = config['train_mask_dir']
     dev_img_dir = config['dev_img_dir']
+    dev_mask_dir = config['dev_mask_dir']
 
     model_path = config['model_path']
     epochs = config['epochs']
     batch_size = config['batch_size']
-    val_split = config['val_split']
     figure_path = config['figure_path']
 
 
@@ -123,11 +123,14 @@ if __name__ == "__main__":
 	X = []
 	y = []
 
+	X_dev = []
+	y_dev = []
+
 	#Kernels for morphological close and dilate
 	kernel_c = np.ones((10,10),np.uint8)
 	kernel_d = np.ones((5,5),np.uint8)
 
-	for mask_name in tqdm(os.listdir(train_mask_dir), desc="Collecting Data"):
+	for mask_name in tqdm(os.listdir(train_mask_dir), desc="Collecting Training Data"):
 	    #Read in Mask
 	    mask_path = os.path.join(train_mask_dir, mask_name)
 	    mask = cv2.imread(mask_path,0)
@@ -150,9 +153,34 @@ if __name__ == "__main__":
 	    X.append(img/255.0)
 	    y.append(mask/255.0)
 
+	for mask_name in tqdm(os.listdir(dev_mask_dir), desc="Collecting Dev Data"):
+	    #Read in Mask
+	    mask_path = os.path.join(dev_mask_dir, mask_name)
+	    mask = cv2.imread(mask_path,0)
+	    
+	    ret, thresh = cv2.threshold(mask, 1, 255, cv2.THRESH_BINARY)
+
+	    #Close gaps in mask and dilate
+	    mask = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel_c)
+	    mask = cv2.dilate(mask, kernel_d,iterations = 1)
+	    
+	    #Read in Image
+	    img_num  = mask_name.split('dev_')[1].split('_')[0]
+	    img_name = 'dev_'+img_num+img_ext
+	    img_path = os.path.join(dev_img_dir, img_name)
+	    
+	    img = cv2.imread(img_path, 0)
+	    assert img.shape == (w,h), 'Image shape is not (%i,%i)' %(w,h)
+	    
+	    #Normalize and save
+	    X_dev.append(img/255.0)
+	    y_dev.append(mask/255.0)
+
 	#Save X and y as np arrays
 	X = np.asarray(X)
 	y = np.asarray(y)
+	X_dev = np.asarray(X)
+	y_dev = np.asarray(y)
 
 	print('Shape of X: %s\nShape of y: %s'%(X.shape, y.shape))
 
@@ -191,7 +219,11 @@ if __name__ == "__main__":
 	X = X[idx]
 	y = y[idx]
 
-	history = model.fit(X, y, epochs=epochs, batch_size=batch_size, validation_split=val_split)
+	idx = np.random.permutation(len(X_dev))
+	X_dev = X[idx]
+	y_dev = y[idx]
+
+	history = model.fit(X, y, epochs=epochs, batch_size=batch_size, validation_data=(X_dev,dev))
 
 	model.save(model_path)
 

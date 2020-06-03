@@ -12,6 +12,5 @@
 	"train_mask_dir": "train/Masks/",
 	"dev_mask_dir": "dev/Masks",
 	"epochs": 500,
-	"batch_size": 8,
-	"val_split": 0.15
+	"batch_size": 8
 }
