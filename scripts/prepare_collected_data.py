@@ -5,10 +5,42 @@ import cv2
 import json
 import argparse
 
+#Simple augmentation, just rotates and flips images
+class Augmentor():
+    
+    def __init__(self, dataset, angle_max=15, rotate_percent=0.50):
+        self.dataset = dataset
+        self.angle_max = angle_max
+        self.rotate_percent = rotate_percent
+    
+    def rotate_data(self,imgs, angles):
+        ret = []
+        for i,image in enumerate(imgs):
+            image_center = tuple(np.array(image.shape[1::-1]) / 2)
+            rot_mat = cv2.getRotationMatrix2D(image_center, angles[i], 1.0)
+            result = cv2.warpAffine(image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR)
+            ret.append(result)
+        return np.asarray(ret)
+    
+    def flip_data(self,imgs, rotate_idx):
+        for idx in rotate_idx:
+            imgs[idx] = cv2.flip(imgs[idx],1)
+        return imgs
+    
+    def generate(self, n=10):
+        sample = self.dataset[np.random.choice(self.dataset.shape[0], size=n)]
+        angles = np.random.randint(-self.angle_max, high=self.angle_max, size=n) 
+        rotate_idx = np.random.choice(imgs.shape[0],n)
+        aug = self.rotate_data(sample, angles)
+        aug = self.flip_data(aug, rotate_idx)
+        return aug
+
 if __name__ == '__main__':
 
     ap = argparse.ArgumentParser()
     ap.add_argument('-r','--root_path', type=str, required=True, help='path to HandleSegmentation root folder')
+    ap.add_argument('-a','--angle_max', type=int, required=False, default=15, help='maximum angle to rotate images in augmentation, default = 15')
+    ap.add_argument('-rp','--rotate_percent', type=float, required=False,default=0.15, help='percentage of generated samples to flip, default = 0.15')
     args = vars(ap.parse_args())
 
     base_path = args['root_path']
@@ -62,6 +94,25 @@ if __name__ == '__main__':
 
     imgs = np.asarray(imgs)
     print('Dataset Shape: ' + str(imgs.shape))
+
+    aug_bool = raw_input('\n\nDo you want to Augment the Dataset? [y/n]\n')
+    while aug_bool not in ['y','Y','yes','n','N','no']:
+        aug_bool = raw_input('\n\nDo you want to Augment the Dataset? [y/n]\n')
+    
+    if aug_bool in ['y','Y','yes']:
+        try:
+            angle_max = int(args['angle_max'])
+            rotate_percent = float(args['rotate_percent'])
+            aug_size = int(raw_input('\n\nHow many samples do you wish to generate?\n'))
+            
+            aug = Augmentor(imgs, angle_max=angle_max, rotate_percent=rotate_percent)
+            imgs = np.concatenate([imgs, aug.generate(aug_size)])
+
+            print('\nNew Dataset Shape: ' + str(imgs.shape))
+        except Exception as e:
+            print(e)
+            exit()
+
 
     #Shuffle, Take %15 and save to dev set, save the rest to test set
     np.random.shuffle(imgs)
