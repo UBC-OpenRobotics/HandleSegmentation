@@ -110,6 +110,11 @@ if __name__ == "__main__":
     batch_size = config['batch_size']
     figure_path = config['figure_path']
 
+    label_method = config['label_method']
+
+    if label_method not in ['polygon','mask']:
+        print('Error: Unrecognized label method in config.json. Supported methods: "polygon", "mask"\n')
+        exit()
 
     #Get absolute paths
     dataset_path = os.path.join(base_path, dataset_path)
@@ -152,9 +157,10 @@ if __name__ == "__main__":
         
         ret, thresh = cv2.threshold(mask, 1, 255, cv2.THRESH_BINARY)
 
-        #Close gaps in mask and dilate
-        mask = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel_c)
-        mask = cv2.dilate(mask, kernel_d,iterations = 1)
+        if label_method == 'mask':
+            #Close gaps in mask and dilate
+            mask = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel_c)
+            mask = cv2.dilate(mask, kernel_d,iterations = 1)
         
         #Read in Image
         img_name = mask_name.split('.')[0]+'.'+img_ext
@@ -173,9 +179,10 @@ if __name__ == "__main__":
         
         ret, thresh = cv2.threshold(mask, 1, 255, cv2.THRESH_BINARY)
 
-        #Close gaps in mask and dilate
-        mask = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel_c)
-        mask = cv2.dilate(mask, kernel_d,iterations = 1)
+        if label_method == 'mask':
+            #Close gaps in mask and dilate
+            mask = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel_c)
+            mask = cv2.dilate(mask, kernel_d,iterations = 1)
         
         #Read in Image
         img_name = mask_name.split('.')[0]+'.'+img_ext
