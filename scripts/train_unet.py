@@ -116,126 +116,139 @@ if __name__ == "__main__":
     train_img_dir = os.path.join(base_path, train_img_dir)
     train_mask_dir = os.path.join(base_path, train_mask_dir)
     dev_img_dir = os.path.join(base_path, dev_img_dir)
+    dev_mask_dir = os.path.join(base_path, dev_mask_dir)
     model_path = os.path.join(base_path, model_path)
     figure_path = os.path.join(base_path, figure_path)
 
 
-	X = []
-	y = []
+    X = []
+    y = []
 
-	X_dev = []
-	y_dev = []
+    X_dev = []
+    y_dev = []
 
-	#Kernels for morphological close and dilate
-	kernel_c = np.ones((10,10),np.uint8)
-	kernel_d = np.ones((5,5),np.uint8)
+    #Kernels for morphological close and dilate
+    kernel_c = np.ones((10,10),np.uint8)
+    kernel_d = np.ones((5,5),np.uint8)
 
-	for mask_name in tqdm(os.listdir(train_mask_dir), desc="Collecting Training Data"):
-	    #Read in Mask
-	    mask_path = os.path.join(train_mask_dir, mask_name)
-	    mask = cv2.imread(mask_path,0)
-	    
-	    ret, thresh = cv2.threshold(mask, 1, 255, cv2.THRESH_BINARY)
+    #Get image extension
+    i=0
+    dir_size = len(os.listdir(train_img_dir))
+    sample_img = os.listdir(train_img_dir)[i]
+    img_ext = sample_img.split('.')[-1]
+    
+    while img_ext not in ['jpg','png'] and i < dir_size:
+        sample_img = os.listdir(train_img_dir)[i]
+        img_ext = sample_img.split('.')[-1]
+        i+=1
+    if i==dir_size:
+        print('Error, could not find .jpg or .png images in %s'%(train_img_dir))
+        exit()
 
-	    #Close gaps in mask and dilate
-	    mask = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel_c)
-	    mask = cv2.dilate(mask, kernel_d,iterations = 1)
-	    
-	    #Read in Image
-	    img_num  = mask_name.split('train_')[1].split('_')[0]
-	    img_name = 'train_'+img_num+img_ext
-	    img_path = os.path.join(train_img_dir, img_name)
-	    
-	    img = cv2.imread(img_path, 0)
-	    assert img.shape == (w,h), 'Image shape is not (%i,%i)' %(w,h)
-	    
-	    #Normalize and save
-	    X.append(img/255.0)
-	    y.append(mask/255.0)
+    for mask_name in tqdm(os.listdir(train_mask_dir), desc="Collecting Training Data"):
+        #Read in Mask
+        mask_path = os.path.join(train_mask_dir, mask_name)
+        mask = cv2.imread(mask_path,0)
+        
+        ret, thresh = cv2.threshold(mask, 1, 255, cv2.THRESH_BINARY)
 
-	for mask_name in tqdm(os.listdir(dev_mask_dir), desc="Collecting Dev Data"):
-	    #Read in Mask
-	    mask_path = os.path.join(dev_mask_dir, mask_name)
-	    mask = cv2.imread(mask_path,0)
-	    
-	    ret, thresh = cv2.threshold(mask, 1, 255, cv2.THRESH_BINARY)
+        #Close gaps in mask and dilate
+        mask = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel_c)
+        mask = cv2.dilate(mask, kernel_d,iterations = 1)
+        
+        #Read in Image
+        img_name = mask_name.split('.')[0]+'.'+img_ext
+        img_path = os.path.join(train_img_dir, img_name)
+        img = cv2.imread(img_path, 0)
+        assert img.shape == (w,h), 'Image shape is not (%i,%i)' %(w,h)
+        
+        #Normalize and save
+        X.append(img/255.0)
+        y.append(mask/255.0)
 
-	    #Close gaps in mask and dilate
-	    mask = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel_c)
-	    mask = cv2.dilate(mask, kernel_d,iterations = 1)
-	    
-	    #Read in Image
-	    img_num  = mask_name.split('dev_')[1].split('_')[0]
-	    img_name = 'dev_'+img_num+img_ext
-	    img_path = os.path.join(dev_img_dir, img_name)
-	    
-	    img = cv2.imread(img_path, 0)
-	    assert img.shape == (w,h), 'Image shape is not (%i,%i)' %(w,h)
-	    
-	    #Normalize and save
-	    X_dev.append(img/255.0)
-	    y_dev.append(mask/255.0)
+    for mask_name in tqdm(os.listdir(dev_mask_dir), desc="Collecting Dev Data"):
+        #Read in Mask
+        mask_path = os.path.join(dev_mask_dir, mask_name)
+        mask = cv2.imread(mask_path,0)
+        
+        ret, thresh = cv2.threshold(mask, 1, 255, cv2.THRESH_BINARY)
 
-	#Save X and y as np arrays
-	X = np.asarray(X)
-	y = np.asarray(y)
-	X_dev = np.asarray(X)
-	y_dev = np.asarray(y)
+        #Close gaps in mask and dilate
+        mask = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel_c)
+        mask = cv2.dilate(mask, kernel_d,iterations = 1)
+        
+        #Read in Image
+        img_name = mask_name.split('.')[0]+'.'+img_ext
+        img_path = os.path.join(dev_img_dir, img_name)
+        
+        img = cv2.imread(img_path, 0)
+        assert img.shape == (w,h), 'Image shape is not (%i,%i)' %(w,h)
+        
+        #Normalize and save
+        X_dev.append(img/255.0)
+        y_dev.append(mask/255.0)
 
-	print('Shape of X: %s\nShape of y: %s'%(X.shape, y.shape))
+    #Save X and y as np arrays
+    X = np.asarray(X)
+    y = np.asarray(y)
+    X_dev = np.asarray(X_dev)
+    y_dev = np.asarray(y_dev)
 
-	fig, ax = plt.subplots(1,2)
-	fig.set_size_inches(16,9)
-	fig.set_facecolor('w')
+    print('Shape of X: %s\nShape of y: %s\n\n'%(X.shape, y.shape))
+    print('Shape of X_dev: %s\nShape of y_dev: %s'%(X_dev.shape, y_dev.shape))
 
-	ax[0].imshow(X[0])
-	ax[0].set_title('First image of X')
-	ax[0].get_xaxis().set_visible(False)
-	ax[0].get_yaxis().set_visible(False)
-	ax[1].imshow(y[0])
-	ax[1].set_title('First Mask of y')
-	ax[1].get_xaxis().set_visible(False)
-	ax[1].get_yaxis().set_visible(False)
+    fig, ax = plt.subplots(1,2)
+    fig.set_size_inches(16,9)
+    fig.set_facecolor('w')
 
-	plt.savefig(os.path.join(figure_path, 'dataset_first_image.png'))
+    ax[0].imshow(X[0])
+    ax[0].set_title('First image of X')
+    ax[0].get_xaxis().set_visible(False)
+    ax[0].get_yaxis().set_visible(False)
+    ax[1].imshow(y[0])
+    ax[1].set_title('First Mask of y')
+    ax[1].get_xaxis().set_visible(False)
+    ax[1].get_yaxis().set_visible(False)
 
-	#Before feeding into model, need to expand dims
-	if len(X.shape) < 4:
-	    X = np.expand_dims(X, axis=3)
-	if len(y.shape) < 4:
-	    y = np.expand_dims(y, axis=3)
+    plt.savefig(os.path.join(figure_path, 'dataset_first_image.png'))
 
-	assert X.shape == (len(X),w,h,1),'Incorrect dimensions for X, expected %s but got %s' %(str([len(X),w,h,1]), X.shape)
-	assert y.shape == (len(y),w,h,1), 'Incorrect dimensions for y, expected %s but got %s' %(str([len(y),w,h,1]), y.shape)
+    #Before feeding into model, need to expand dims
+    if len(X.shape) < 4:
+        X = np.expand_dims(X, axis=3)
+    if len(y.shape) < 4:
+        y = np.expand_dims(y, axis=3)
 
-	#Create and compile model
-	inputs = layers.Input(X[0].shape)
-	model = get_unet(inputs)
-	model.compile(optimizer=optimizers.Adam(learning_rate=0.0005), loss=dice_loss, metrics=[dice_loss,'accuracy'])
+    assert X.shape == (len(X),w,h,1),'Incorrect dimensions for X, expected %s but got %s' %(str([len(X),w,h,1]), X.shape)
+    assert y.shape == (len(y),w,h,1), 'Incorrect dimensions for y, expected %s but got %s' %(str([len(y),w,h,1]), y.shape)
+
+    #Create and compile model
+    inputs = layers.Input(X[0].shape)
+    model = get_unet(inputs)
+    model.compile(optimizer=optimizers.Adam(learning_rate=0.0005), loss=dice_loss, metrics=[dice_loss,'accuracy'])
 
 
-	#Shuffle
-	idx = np.random.permutation(len(X))
-	X = X[idx]
-	y = y[idx]
+    #Shuffle
+    idx = np.random.permutation(len(X))
+    X = X[idx]
+    y = y[idx]
 
-	idx = np.random.permutation(len(X_dev))
-	X_dev = X[idx]
-	y_dev = y[idx]
+    idx = np.random.permutation(len(X_dev))
+    X_dev = X[idx]
+    y_dev = y[idx]
 
-	history = model.fit(X, y, epochs=epochs, batch_size=batch_size, validation_data=(X_dev,dev))
+    history = model.fit(X, y, epochs=epochs, batch_size=batch_size, validation_data=(X_dev,y_dev))
 
-	model.save(model_path)
+    model.save(model_path)
 
-	print('Model saved')
+    print('Model saved')
 
-	fig, ax = plt.subplots()
-	fig.set_size_inches(12,8)
-	fig.set_facecolor('w')
-	ax.plot(history.history['acc'], label='accuracy')
-	ax.plot(history.history['val_acc'], label='validation_accuracy')
-	ax.plot(history.history['dice_loss'], label='dice_loss')
-	ax.plot(history.history['val_dice_loss'], label='validation_dice_loss')
-	ax.set_xlabel('Epoch')
-	plt.legend()
-	plt.savefig(os.path.join(figure_path,'history.png'))
+    fig, ax = plt.subplots()
+    fig.set_size_inches(12,8)
+    fig.set_facecolor('w')
+    ax.plot(history.history['acc'], label='accuracy')
+    ax.plot(history.history['val_acc'], label='validation_accuracy')
+    ax.plot(history.history['dice_loss'], label='dice_loss')
+    ax.plot(history.history['val_dice_loss'], label='validation_dice_loss')
+    ax.set_xlabel('Epoch')
+    plt.legend()
+    plt.savefig(os.path.join(figure_path,'history.png'))
