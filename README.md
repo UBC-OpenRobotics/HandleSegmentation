@@ -18,6 +18,8 @@ For mask  generation in LableMe, upload the dataset images and label the handle 
 
 For MakeSense, it is easy to drag and drop images into the interface. Label the train and dev set seperately. Using the polygon tool, trace the outline of the handles. After this is done, export lables as VGG JSON. These are sets of points. To convert to masks, which the unet model expects, `cd scripts` and run `python vgg_json_to_mask.py -r ../ -j <path-to-train-json> -d train` for the training set and `python vgg_json_to_mask.py -r ../ -j <path-to-dev-json> -d dev` for the dev set.
 
+Ensure that you change the `"label_method"` parameter in `config.json` to either `"polygon"` if the labelling method used was the VGG JSON output from MakeSense, or `"mask"` if the labels were made in LabelMe. This parameter controls whether to apply morphological transforms to the masks before processing, which LabelMe outputs require.
+
 ## Scripts
 
 _prepare_collected_data.py_ - Script that takes images or videos found in `/collected_data` and creates an image dataset. It also allows for basic image augmentation. It takes three arguments:
