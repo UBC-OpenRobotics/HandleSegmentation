@@ -1,10 +1,17 @@
 {
 	"base_path":"/home/francisco/openrobotics_ws/src/HandleSegmentation",
 	"dataset_path": "collected_data/",
+	"figure_path": "figures/",
 	"input_w": 384,
 	"input_h": 384,
 	"collection_frame_skip": 5,
 	"dev_split": 0.15,
 	"train_img_dir": "train/Images/",
-	"dev_img_dir": "dev/Images"
+	"dev_img_dir": "dev/Images",
+	"model_path": "unet_model",
+	"train_mask_dir": "train/Masks/",
+	"dev_mask_dir": "dev/Masks",
+	"epochs": 500,
+	"batch_size": 8,
+	"val_split": 0.15
 }
