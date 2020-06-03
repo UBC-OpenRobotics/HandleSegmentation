@@ -54,7 +54,7 @@ if __name__ == "__main__":
         y_coord = regions['shape_attributes']['all_points_y']
         mask = points2mask(x_coord, y_coord, w, h)
 
-        mask_name = 'mask'+filename.split(dest)[-1]
+        mask_name = filename
         mask_path = os.path.join(dest_path, mask_name)
         cv2.imwrite(mask_path, mask)
 
