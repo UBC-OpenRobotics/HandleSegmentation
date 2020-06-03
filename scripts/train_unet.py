@@ -264,29 +264,29 @@ if __name__ == "__main__":
     X_0 = X[0]
     y_0 = y[0]
 
-    y_hat_0 = model.predict(X_0)
+    y_hat_0 = model.predict(np.expand_dims(X_0, axis=0))
 
     #reshape to plot
-    X_0 = np.reshape(X_0, X_0.shape[1:-1]) 
-    y_0 = np.reshape(y_0, y_0.shape[1:-1])
+    X_0 = np.reshape(X_0, X_0.shape[:-1]) 
+    y_0 = np.reshape(y_0, y_0.shape[:-1])
     y_hat_0 = np.reshape(y_hat_0, y_hat_0.shape[1:-1])
 
     fig,ax = plt.subplots(1,3)
     fig.set_size_inches(16,9)
     fig.set_facecolor('w')
-    ax[0,0].imshow(X_0)
+    ax[0].imshow(X_0)
     ax[0].get_xaxis().set_visible(False)
     ax[0].get_yaxis().set_visible(False)
-    ax[0,0].set_title('Sample Input Image from Train Dataset')
+    ax[0].set_title('Sample Input Image from Train Dataset')
 
-    ax[0,1].imshow(y_hat_0)
-    ax[0,1].get_xaxis().set_visible(False)
-    ax[0,1].get_yaxis().set_visible(False)
-    ax[0,1].set_title('Predicted Mask')
+    ax[1].imshow(y_hat_0)
+    ax[1].get_xaxis().set_visible(False)
+    ax[1].get_yaxis().set_visible(False)
+    ax[1].set_title('Predicted Mask')
 
-    ax[0,2].imshow(y_0)
-    ax[0,2].get_xaxis().set_visible(False)
-    ax[0,2].get_yaxis().set_visible(False)
-    ax[0,2].set_title('Expected Mask')
+    ax[2].imshow(y_0)
+    ax[2].get_xaxis().set_visible(False)
+    ax[2].get_yaxis().set_visible(False)
+    ax[2].set_title('Expected Mask')
 
     plt.savefig(os.path.join(figure_path,'sample_prediction.png'))
