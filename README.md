@@ -68,7 +68,7 @@ _epochs_ - Number of epochs to train, `default=500`
 
 _batch_size_ - Number of images per batch, `default=8`
 
-_label_method_ - One of `polygon` or `mask`, corresponds to labelling method used, refer to [Image Labelling](#Image Labelling)
+_label_method_ - One of `polygon` or `mask`, corresponds to labelling method used, refer to [Image Labelling](#Image-Labelling)
 
 
 
